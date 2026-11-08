@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./01.WebViewStarterTemplate
+        working-directory: ./01.WebViewStarterTemplate # Otomatis masuk ke folder 01
 
     steps:
       - name: Checkout code
@@ -33,6 +33,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # PERBAIKAN: Memberi izin eksekusi pada gradlew
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Replace App Name
         run: |
           sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ github.event.inputs.app_name }}</string>|g" app/src/main/res/values/strings.xml
@@ -41,13 +45,14 @@ jobs:
         run: |
           find . -name "MainActivity.java" -exec sed -i "s|https://www.google.com|${{ github.event.inputs.web_url }}|g" {} +
 
+      # PERBAIKAN: Tambahkan || true agar build tidak berhenti total jika gambar gagal didownload
       - name: Download and Replace App Icon
         run: |
-          wget -O app/src/main/res/mipmap-hdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
-          wget -O app/src/main/res/mipmap-mdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
-          wget -O app/src/main/res/mipmap-xhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
-          wget -O app/src/main/res/mipmap-xxhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
-          wget -O app/src/main/res/mipmap-xxxhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
+          wget -O app/src/main/res/mipmap-hdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
+          wget -O app/src/main/res/mipmap-mdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
+          wget -O app/src/main/res/mipmap-xhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
+          wget -O app/src/main/res/mipmap-xxhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
+          wget -O app/src/main/res/mipmap-xxxhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
 
       - name: Build APK
         run: ./gradlew assembleRelease
