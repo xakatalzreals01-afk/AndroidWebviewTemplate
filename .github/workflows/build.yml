@@ -30,26 +30,28 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # PROSES GANTI NAMA, URL, DAN ICON
-      - name: Proses Config & Icon
+      - name: Proses Config, HTML & Icon
         run: |
           cd 01.WebViewStarterTemplate
           chmod +x gradlew
           
-          # 1. Ganti Nama & URL
+          # 1. Ganti Nama Aplikasi
           sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ github.event.inputs.app_name }}</string>|g" app/src/main/res/values/strings.xml
-          find . -name "MainActivity.java" -exec sed -i "s|https://www.google.com|${{ github.event.inputs.web_url }}|g" {} +
           
-          # 2. HAPUS ICON LAMA (PNG & WEBP) BIAR GAK BENTROK
+          # 2. TIMPA FILE index.html AGAR OTOMATIS REDIRECT KE URL KAMU
+          # Ini trik paling ampuh, daripada ngoprek Java yang suka error
+          echo "<html><head><meta http-equiv='refresh' content='0;url=${{ github.event.inputs.web_url }}' /></head><body><script>window.location.href='${{ github.event.inputs.web_url }}';</script></body></html>" > app/src/main/assets/index.html
+          
+          # 3. Hapus Icon Lama
           rm -f app/src/main/res/mipmap-*/ic_launcher.webp
           rm -f app/src/main/res/mipmap-*/ic_launcher.png
           
-          # 3. DOWNLOAD ICON BARU DARI FLUTTER
-          wget -O app/src/main/res/mipmap-hdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
-          wget -O app/src/main/res/mipmap-mdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
-          wget -O app/src/main/res/mipmap-xhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
-          wget -O app/src/main/res/mipmap-xxhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
-          wget -O app/src/main/res/mipmap-xxxhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}" || true
+          # 4. Download Icon Baru dari Link Catbox
+          wget -O app/src/main/res/mipmap-hdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
+          wget -O app/src/main/res/mipmap-mdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
+          wget -O app/src/main/res/mipmap-xhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
+          wget -O app/src/main/res/mipmap-xxhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
+          wget -O app/src/main/res/mipmap-xxxhdpi/ic_launcher.png "${{ github.event.inputs.icon_url }}"
 
       - name: Build APK
         run: |
